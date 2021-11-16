@@ -62,7 +62,7 @@ func main() {
 	var targetTable = flag.String("t", "bqwrite_test", "BigQuery Table")
 	var numberWorkers = flag.Int("w", 5, "Number of Parallel Workers, 1 to 100")
 	var numberIterations = flag.Int("i", 100, "Number of Records, 1 to 100000000")
-	var batchSize = flag.Int("b", 1, "Number of Records, 1 to 50000")
+	var batchSize = flag.Int("b", 1, "Batch Size, 1 to 50000")
 	var overwriteTable = flag.Bool("o", false, "Overwrite BigQuery Table")
 	var verbose = flag.Bool("v", false, "Output Verbose Detail")
 

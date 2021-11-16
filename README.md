@@ -10,7 +10,7 @@ USAGE:
 
 ARGS:
   -b int
-    	Number of Records, 1 to 50000 (default 1)
+    	Batch Size, 1 to 50000 (default 1)
   -d string
     	BigQuery Dataset  (Required)
   -i int
