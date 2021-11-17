@@ -31,8 +31,8 @@ import (
 	"google.golang.org/api/googleapi"
 )
 
-var applicationText = "%s 0.1.0"
-var copyrightText = "Copyright 2021, Matthew Winter"
+var applicationText = "%s 0.1.0\n"
+var copyrightText = "Copyright 2021, Matthew Winter\n"
 
 var helpText = `
 A command line application designed to provide a method to test the BigQuery
