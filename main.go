@@ -31,7 +31,7 @@ import (
 	"google.golang.org/api/googleapi"
 )
 
-var applicationText = "%s 0.1.0\n"
+var applicationText = "%s 0.2.0\n"
 var copyrightText = "Copyright 2021, Matthew Winter\n"
 
 var helpText = `
@@ -125,48 +125,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Create a BigQuery (stream) writer thread-safe client,
-	logger.Info("Establish BigQuery Streaming Client")
-	bqWriter, err := bqwriter.NewStreamer(
-		ctx, *targetProject, *targetDataset, *targetTable,
-		&bqwriter.StreamerConfig{
-			WorkerCount:     *numberWorkers,
-			WorkerQueueSize: *batchSize,
-			//MaxBatchDelay:   1,
-			InsertAllClient: &bqwriter.InsertAllClientConfig{
-				BatchSize:            *batchSize,
-				FailOnInvalidRows:    true,
-				FailForUnknownValues: true,
-			},
-		},
-	)
+	// Execute Legacy Stream to Target BigQuery Table
+	err = ExecuteLegacyStream(ctx, *targetProject, *targetDataset, *targetTable, *numberWorkers, *batchSize, *numberIterations, *verbose)
 	if err != nil {
-		logger.Errorf("Error [bqwriter.NewStreamer]: %v\n", err)
+		logger.Errorf("Error [ExecuteLegacyStream]: %v\n", err)
 		os.Exit(1)
 	}
-	defer bqWriter.Close()
 
-	// You can now start writing data to your BQ table
-	startTime := time.Now()
-	count := 0
-	logger.Info("Start Streaming Data")
-	for data := range newGenerator(ctx, *numberIterations, NewTableData) {
-		err = bqWriter.Write(data)
-		if err != nil {
-			logger.Errorf("Error [bqwriter.Write]:\nData: %v\nError: %w\n\n", data, err)
-			os.Exit(1)
-		}
-		count++
-
-		if *verbose {
-			if math.Mod(float64(count), 2000) == 0 {
-				logger.Infof("  Records Sent: %8d", count)
-			}
-		}
-	}
-	elapsed := time.Since(startTime)
-	logger.Infof("  %d Records Streamed in %s", count, elapsed)
-	logger.Info("End Streaming Data")
+	logger.Info("End of Output")
 }
 
 // Create the Target BigQuery Table if Required
@@ -210,4 +176,66 @@ func CreateBigQueryTable(ctx context.Context, client *bigquery.Client, datasetID
 	}
 
 	return nil
+}
+
+// // Execute Legacy Stream to Target BigQuery Table
+func ExecuteLegacyStream(ctx context.Context, projectID, datasetID, tableID string, numberWorkers, batchSize, numberIterations int, verbose bool) error {
+	// Create a BigQuery (stream) writer thread-safe client,
+	logger.Info("Establish BigQuery Streaming Client")
+	streamer, err := bqwriter.NewStreamer(
+		context.Background(),
+		projectID,
+		datasetID,
+		tableID,
+		&bqwriter.StreamerConfig{
+			WorkerCount:     numberWorkers,
+			WorkerQueueSize: CalculateWorkerQueueSize(batchSize),
+			InsertAllClient: &bqwriter.InsertAllClientConfig{
+				BatchSize:            batchSize,
+				FailOnInvalidRows:    true,
+				FailForUnknownValues: true,
+			},
+		},
+	)
+	if err != nil {
+		return err
+	}
+	defer streamer.Close()
+
+	// You can now start writing data to your BQ table
+	startTime := time.Now()
+	count := 0
+	logger.Info("Start Streaming Data")
+	for data := range newGenerator(ctx, numberIterations, NewTableData) {
+		err = streamer.Write(data)
+		if err != nil {
+			return err
+		}
+		count++
+
+		if verbose {
+			if math.Mod(float64(count), 10000) == 0 {
+				logger.Infof("  Records Sent: %8d", count)
+			}
+		}
+	}
+	elapsed := time.Since(startTime)
+	logger.Infof("  %d Records Streamed in %s", count, elapsed)
+	logger.Info("End Streaming Data")
+	logger.Info("Closing BigQuery Streaming Client")
+
+	return nil
+}
+
+// If the Worker Queue Size is too large we start to see records being dropped
+// So, ensure that we calculate a small enough worker queue
+func CalculateWorkerQueueSize(batchSize int) int {
+	if batchSize >= 500 {
+		return 100
+	} else if batchSize >= 200 {
+		return 50
+	} else if batchSize >= 50 {
+		return 10
+	}
+	return 1
 }

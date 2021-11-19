@@ -91,10 +91,10 @@ var randomNames = []string{"Louis Green", "Skyla Morrison", "Annalise Rosario", 
 
 // Generate a Random Data Set
 func newGenerator(ctx context.Context, iterations int, gen dataGenerator) <-chan interface{} {
-	loc, _ := time.LoadLocation("UTC")
 	ch := make(chan interface{}, 1)
 	go func() {
 		defer close(ch)
+		loc, _ := time.LoadLocation("UTC")
 		for i := 0; i < iterations; i++ {
 			data := gen(
 				randomNames[i%len(randomNames)],
