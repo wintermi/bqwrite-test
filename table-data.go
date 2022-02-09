@@ -80,7 +80,7 @@ func NewTableData(name string, uuid int64, create_time time.Time) interface{} {
 var randomNames = []string{"Louis Green", "Skyla Morrison", "Annalise Rosario", "Francisco Cole", "Aron Downs", "Alvin Buck",
 	"Fletcher Clarke", "Sophie Salazar", "Kaleigh Hughes", "Winston Mason", "Braelyn Ho", "Finley Gibson"}
 
-// Generate a Random Data Set
+// newGenerator will generate a random dataset
 func newGenerator(ctx context.Context, iterations int, gen dataGenerator) <-chan interface{} {
 	ch := make(chan interface{}, 1)
 	go func() {

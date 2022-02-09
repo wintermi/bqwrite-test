@@ -135,7 +135,7 @@ func main() {
 	logger.Info("End of Output")
 }
 
-// Create the Target BigQuery Table if Required
+// CreateBigQueryTable will create the target BigQuery table if required
 func CreateBigQueryTable(ctx context.Context, client *bigquery.Client, datasetID, tableID string, overwrite bool) error {
 	var createTable bool = false
 
@@ -182,7 +182,7 @@ func CreateBigQueryTable(ctx context.Context, client *bigquery.Client, datasetID
 	return nil
 }
 
-// // Execute Legacy Stream to Target BigQuery Table
+// ExecuteLegacyStream will establish a stream to the target BigQuery table using the legacy API
 func ExecuteLegacyStream(ctx context.Context, projectID, datasetID, tableID string, numberWorkers, batchSize, numberIterations int, verbose bool) error {
 	// Create a BigQuery (stream) writer thread-safe client,
 	logger.Info("Establish BigQuery Streaming Client")
@@ -231,8 +231,8 @@ func ExecuteLegacyStream(ctx context.Context, projectID, datasetID, tableID stri
 	return nil
 }
 
-// If the Worker Queue Size is too large we start to see records being dropped
-// So, ensure that we calculate a small enough worker queue
+// CalculateWorkerQueueSize attempts to dynamically adjust the work queue size
+// to minimise any records from being dropped.
 func CalculateWorkerQueueSize(batchSize int) int {
 	if batchSize >= 500 {
 		return 100
