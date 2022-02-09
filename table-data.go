@@ -76,15 +76,6 @@ func NewTableData(name string, uuid int64, create_time time.Time) interface{} {
 	}
 }
 
-// NewStorageTableData creates a ValueSaver/JsonMarshal-based temporary data model, implented using the dataGenerator syntax.
-// Designed to be used for BigQuery Storage Writes testing.
-func NewStorageTableData(name string, uuid int64, create_time time.Time) interface{} {
-	data := NewTableData(name, uuid, create_time)
-	//  t, _ := data.(*tableDataRecord)
-	//	t.TimestampAsEpoch = true
-	return data
-}
-
 // Random names list used for Data Generation
 var randomNames = []string{"Louis Green", "Skyla Morrison", "Annalise Rosario", "Francisco Cole", "Aron Downs", "Alvin Buck",
 	"Fletcher Clarke", "Sophie Salazar", "Kaleigh Hughes", "Winston Mason", "Braelyn Ho", "Finley Gibson"}

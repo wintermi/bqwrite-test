@@ -1,4 +1,4 @@
-# BigQuery Streaming API Test
+# BigQuery Streaming API Test CLI &nbsp;[![Go Workflow Status](https://github.com/winterlabs-dev/bqwrite-test/workflows/Go/badge.svg)](https://github.com/winterlabs-dev/bqwrite-test/actions/workflows/go.yml)&nbsp;[![Go Report Card](https://goreportcard.com/badge/github.com/winterlabs-dev/bqwrite-test)](https://goreportcard.com/report/github.com/winterlabs-dev/bqwrite-test)&nbsp;[![license](https://img.shields.io/github/license/winterlabs-dev/bqwrite-test.svg)](https://github.com/winterlabs-dev/bqwrite-test/blob/master/LICENSE.txt)&nbsp;[![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/winterlabs-dev/bqwrite-test?include_prereleases)](https://github.com/winterlabs-dev/bqwrite-test/releases)
 
 
 ## Description

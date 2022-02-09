@@ -153,7 +153,11 @@ func CreateBigQueryTable(ctx context.Context, client *bigquery.Client, datasetID
 	// If the table already exists and the overwrite flag is present
 	if overwrite && tableMetaData != nil {
 		logger.Infof("Deleting Existing BigQuery Table: %s", tableID)
-		table.Delete(ctx)
+		err = table.Delete(ctx)
+		if err != nil {
+			logger.Errorf("Error [table.Delete]: %v\n", err)
+			os.Exit(1)
+		}
 
 		// Need to add a short sleep here, for the eventual consistency issue
 		logger.Info("  Sleeping for 10 minutes to allow for eventual consistency to propagate")
