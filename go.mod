@@ -1,4 +1,4 @@
-module bqwrite-test
+module github.com/winterlabs-dev/bqwrite-test
 
 go 1.17
 
