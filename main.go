@@ -31,7 +31,7 @@ import (
 	"google.golang.org/api/googleapi"
 )
 
-var applicationText = "%s 0.2.0\n"
+var applicationText = "%s 0.2.1\n"
 var copyrightText = "Copyright 2021, Matthew Winter\n"
 
 var helpText = `
