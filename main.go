@@ -1,4 +1,4 @@
-// Copyright 2021, Matthew Winter
+// Copyright 2021-2022, Matthew Winter
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"log"
 	"math"
 	"net/http"
 	"os"
@@ -27,12 +26,14 @@ import (
 
 	"cloud.google.com/go/bigquery"
 	"github.com/OTA-Insight/bqwriter"
-	"github.com/google/logger"
+	"github.com/rs/zerolog"
 	"google.golang.org/api/googleapi"
 )
 
-var applicationText = "%s 0.2.1\n"
-var copyrightText = "Copyright 2021, Matthew Winter\n"
+var logger zerolog.Logger
+var applicationText = "%s 0.2.2%s"
+var copyrightText = "Copyright 2021-2022, Matthew Winter\n"
+var indent = "..."
 
 var helpText = `
 A command line application designed to provide a method to test the BigQuery
@@ -50,7 +51,7 @@ ARGS:
 
 func main() {
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, applicationText, filepath.Base(os.Args[0]))
+		fmt.Fprintf(os.Stderr, applicationText, filepath.Base(os.Args[0]), "\n")
 		fmt.Fprint(os.Stderr, copyrightText)
 		fmt.Fprint(os.Stderr, helpText)
 		flag.PrintDefaults()
@@ -93,27 +94,32 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Setup the standard Google Logger
-	defer logger.Init("bqwrite-test", *verbose, true, os.Stdout).Close()
-	logger.SetFlags(log.LstdFlags)
-	logger.SetFlags(log.Lmicroseconds)
-	logger.Infof(applicationText, filepath.Base(os.Args[0]))
-	logger.Info()
-	logger.Info("Parameters")
-	logger.Infof("  Project ID:     %v", *targetProject)
-	logger.Infof("  Dataset:        %v", *targetDataset)
-	logger.Infof("  Table:          %v", *targetTable)
-	logger.Infof("  Number Workers: %v", *numberWorkers)
-	logger.Infof("  Number Records: %v", *numberIterations)
-	logger.Infof("  Batch Size:     %v", *batchSize)
-	logger.Info()
+	// Setup Zero Log for Consolo Output
+	output := zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC3339}
+	logger = zerolog.New(output).With().Timestamp().Logger()
+	if *verbose {
+		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	} else {
+		zerolog.SetGlobalLevel(zerolog.InfoLevel)
+	}
+
+	// Output Header
+	logger.Info().Msgf(applicationText, filepath.Base(os.Args[0]), "")
+	logger.Info().Msg("Arguments")
+	logger.Info().Str("Project ID", *targetProject).Msg(indent)
+	logger.Info().Str("Dataset", *targetDataset).Msg(indent)
+	logger.Info().Str("Table", *targetTable).Msg(indent)
+	logger.Info().Int("Number Workers", *numberWorkers).Msg(indent)
+	logger.Info().Int("Number Records", *numberIterations).Msg(indent)
+	logger.Info().Int("Batch Size", *batchSize).Msg(indent)
+	logger.Info().Msg("Begin")
 
 	// Create a BigQuery Client
-	logger.Info("Establish BigQuery Client Connection")
+	logger.Info().Msg("Establish BigQuery Client Connection")
 	ctx := context.Background()
 	client, err := bigquery.NewClient(ctx, *targetProject)
 	if err != nil {
-		logger.Errorf("Error [bigquery.NewClient]: %v\n", err)
+		logger.Error().Err(err).Msg("Error [bigquery.NewClient]")
 		os.Exit(1)
 	}
 	defer client.Close()
@@ -121,18 +127,18 @@ func main() {
 	// Create the Target BigQuery Table if Required
 	err = CreateBigQueryTable(ctx, client, *targetDataset, *targetTable, *overwriteTable)
 	if err != nil {
-		logger.Errorf("Error [CreateBigQueryTable]: %v\n", err)
+		logger.Error().Err(err).Msg("Error [CreateBigQueryTable]")
 		os.Exit(1)
 	}
 
 	// Execute Legacy Stream to Target BigQuery Table
 	err = ExecuteLegacyStream(ctx, *targetProject, *targetDataset, *targetTable, *numberWorkers, *batchSize, *numberIterations, *verbose)
 	if err != nil {
-		logger.Errorf("Error [ExecuteLegacyStream]: %v\n", err)
+		logger.Error().Err(err).Msg("Error [ExecuteLegacyStream]")
 		os.Exit(1)
 	}
 
-	logger.Info("End of Output")
+	logger.Info().Msg("End")
 }
 
 // CreateBigQueryTable will create the target BigQuery table if required
@@ -152,15 +158,15 @@ func CreateBigQueryTable(ctx context.Context, client *bigquery.Client, datasetID
 
 	// If the table already exists and the overwrite flag is present
 	if overwrite && tableMetaData != nil {
-		logger.Infof("Deleting Existing BigQuery Table: %s", tableID)
+		logger.Info().Str("Table Name", tableID).Msg("Deleting Existing BigQuery Table")
 		err = table.Delete(ctx)
 		if err != nil {
-			logger.Errorf("Error [table.Delete]: %v\n", err)
+			logger.Error().Err(err).Msg("Error [table.Delete]")
 			os.Exit(1)
 		}
 
 		// Need to add a short sleep here, for the eventual consistency issue
-		logger.Info("  Sleeping for 10 minutes to allow for eventual consistency to propagate")
+		logger.Info().Msg("  Sleeping for 10 minutes to allow for eventual consistency to propagate")
 		time.Sleep(10 * time.Minute)
 
 		table = client.Dataset(datasetID).Table(tableID)
@@ -169,13 +175,13 @@ func CreateBigQueryTable(ctx context.Context, client *bigquery.Client, datasetID
 
 	// Finally, Create the BigQuery Table if required
 	if createTable {
-		logger.Infof("Creating BigQuery Table: %s", tableID)
+		logger.Info().Str("Table Name", tableID).Msg("Creating BigQuery Table")
 		if err := table.Create(ctx, &bigquery.TableMetadata{Schema: tableDataBigQuerySchema}); err != nil {
 			return err
 		}
 
 		// Need to add a short sleep here, for the eventual consistency issue
-		logger.Info("  Sleeping for 10 minutes to allow for eventual consistency to propagate")
+		logger.Info().Msg("  Sleeping for 10 minutes to allow for eventual consistency to propagate")
 		time.Sleep(10 * time.Minute)
 	}
 
@@ -185,7 +191,7 @@ func CreateBigQueryTable(ctx context.Context, client *bigquery.Client, datasetID
 // ExecuteLegacyStream will establish a stream to the target BigQuery table using the legacy API
 func ExecuteLegacyStream(ctx context.Context, projectID, datasetID, tableID string, numberWorkers, batchSize, numberIterations int, verbose bool) error {
 	// Create a BigQuery (stream) writer thread-safe client,
-	logger.Info("Establish BigQuery Streaming Client")
+	logger.Info().Msg("Establish BigQuery Streaming Client")
 	streamer, err := bqwriter.NewStreamer(
 		context.Background(),
 		projectID,
@@ -209,7 +215,7 @@ func ExecuteLegacyStream(ctx context.Context, projectID, datasetID, tableID stri
 	// You can now start writing data to your BQ table
 	startTime := time.Now()
 	count := 0
-	logger.Info("Start Streaming Data")
+	logger.Info().Msg("Start Streaming Data")
 	for data := range newGenerator(ctx, numberIterations, NewTableData) {
 		err = streamer.Write(data)
 		if err != nil {
@@ -219,14 +225,14 @@ func ExecuteLegacyStream(ctx context.Context, projectID, datasetID, tableID stri
 
 		if verbose {
 			if math.Mod(float64(count), 10000) == 0 {
-				logger.Infof("  Records Sent: %8d", count)
+				logger.Info().Int("Records Sent", count).Msg(indent)
 			}
 		}
 	}
 	elapsed := time.Since(startTime)
-	logger.Infof("  %d Records Streamed in %s", count, elapsed)
-	logger.Info("End Streaming Data")
-	logger.Info("Closing BigQuery Streaming Client")
+	logger.Info().Int("Records Sent", count).Dur("Time Taken", elapsed).Msg(indent)
+	logger.Info().Msg("End Streaming Data")
+	logger.Info().Msg("Closing BigQuery Streaming Client")
 
 	return nil
 }
