@@ -1,5 +1,8 @@
 # BigQuery Streaming API Test Client
-[![Go Workflow Status](https://github.com/wintermi/bqwrite-test/workflows/Go/badge.svg)](https://github.com/wintermi/bqwrite-test/actions/workflows/go.yml)&nbsp;[![Go Report Card](https://goreportcard.com/badge/github.com/wintermi/bqwrite-test)](https://goreportcard.com/report/github.com/wintermi/bqwrite-test)&nbsp;[![license](https://img.shields.io/github/license/wintermi/bqwrite-test.svg)](https://github.com/wintermi/bqwrite-test/blob/main/LICENSE)&nbsp;[![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/wintermi/bqwrite-test?include_prereleases)](https://github.com/wintermi/bqwrite-test/releases)
+[![Go Workflow Status](https://github.com/wintermi/bqwrite-test/workflows/Go/badge.svg)](https://github.com/wintermi/bqwrite-test/actions/workflows/go.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/wintermi/bqwrite-test)](https://goreportcard.com/report/github.com/wintermi/bqwrite-test)
+[![license](https://img.shields.io/github/license/wintermi/bqwrite-test.svg)](https://github.com/wintermi/bqwrite-test/blob/main/LICENSE)
+[![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/wintermi/bqwrite-test?include_prereleases)](https://github.com/wintermi/bqwrite-test/releases)
 
 
 ## Description
@@ -35,3 +38,7 @@ If you wish to delete and recreate the existing table you can execute the comman
 Because BigQuery's Streaming API is designed for high insertion rates, modifications to the underlying table metadata exhibit are eventually consistent when interacting with the streaming system.
 
 Because of this, when overwriting or creating the table initially a 10 minute sleep is performed.
+
+
+## License
+**bqwrite-test** is released under the [Apache License 2.0](https://github.com/wintermi/bqwrite-test/blob/main/LICENSE) unless explicitly mentioned in the file header.
