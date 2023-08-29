@@ -1,6 +1,6 @@
 # BigQuery Streaming API Test Client
 
-[![Workflows](https://github.com/wintermi/bqwrite-test/workflows/Go/badge.svg)](https://github.com/wintermi/bqwrite-test/actions/workflows/go.yml)
+[![Workflows](https://github.com/wintermi/bqwrite-test/workflows/Go/badge.svg)](https://github.com/wintermi/bqwrite-test/actions)
 [![Go Report](https://goreportcard.com/badge/github.com/wintermi/bqwrite-test)](https://goreportcard.com/report/github.com/wintermi/bqwrite-test)
 [![License](https://img.shields.io/github/license/wintermi/bqwrite-test.svg)](https://github.com/wintermi/bqwrite-test/blob/main/LICENSE)
 [![Release](https://img.shields.io/github/v/release/wintermi/bqwrite-test?include_prereleases)](https://github.com/wintermi/bqwrite-test/releases)

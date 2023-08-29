@@ -31,7 +31,7 @@ import (
 )
 
 var logger zerolog.Logger
-var applicationText = "%s 0.2.3%s"
+var applicationText = "%s 0.2.4%s"
 var copyrightText = "Copyright 2021-2023, Matthew Winter\n"
 var indent = "..."
 
